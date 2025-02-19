@@ -267,7 +267,7 @@ class MujocoEnv(metaclass=EnvMeta):
             if self.renderer == "mujoco":
                 self._destroy_viewer()
                 self._destroy_sim()
-            self._load_model()
+            # self._load_model()
             self._initialize_sim()
         # Else, we only reset the sim internally
         else:

@@ -38,8 +38,6 @@ class Keyboard(Device):
         # start listening
         self.listener.start()
 
-        self.user_confirmation_requested = False  # 用户确认标志
-
     @staticmethod
     def _display_controls():
         """
@@ -76,8 +74,6 @@ class Keyboard(Device):
         self.pos = np.zeros(3)  # (x, y, z)
         self.last_pos = np.zeros(3)
 
-        self.user_confirmation_requested = False  # 重置确认状态
-
     def start_control(self):
         """
         Method that should be called externally before controller can
@@ -90,12 +86,16 @@ class Keyboard(Device):
     def get_controller_state(self):
         """
         Grabs the current state of the keyboard.
+        Returns:
+            dict: A dictionary containing dpos, orn, unmodified orn, grasp, and reset
         """
+
         dpos = self.pos - self.last_pos
         self.last_pos = np.array(self.pos)
-        raw_drotation = self.raw_drotation - self.last_drotation
+        raw_drotation = (
+            self.raw_drotation - self.last_drotation
+        )  # create local variable to return, then reset internal drotation
         self.last_drotation = np.array(self.raw_drotation)
-        
         return dict(
             dpos=dpos,
             rotation=self.rotation,
@@ -103,7 +103,6 @@ class Keyboard(Device):
             grasp=int(self.grasp),
             reset=self._reset_state,
             base_mode=int(self.base_mode),
-            user_confirmation=self.user_confirmation_requested,  # 返回确认状态
         )
 
     def on_press(self, key):
@@ -112,25 +111,21 @@ class Keyboard(Device):
         Args:
             key (str): key that was pressed
         """
+
         try:
-            # 用户确认处理
-            if key.char == "u":
-                self.user_confirmation_requested = True
-                return
-            
-            # 原有的按键处理逻辑
+            # controls for moving position
             if key == Key.up:
-                self.pos[0] -= self._pos_step * self.pos_sensitivity
+                self.pos[0] -= self._pos_step * self.pos_sensitivity  # dec x
             elif key == Key.down:
-                self.pos[0] += self._pos_step * self.pos_sensitivity
+                self.pos[0] += self._pos_step * self.pos_sensitivity  # inc x
             elif key == Key.left:
-                self.pos[1] -= self._pos_step * self.pos_sensitivity
+                self.pos[1] -= self._pos_step * self.pos_sensitivity  # dec y
             elif key == Key.right:
-                self.pos[1] += self._pos_step * self.pos_sensitivity
+                self.pos[1] += self._pos_step * self.pos_sensitivity  # inc y
             elif key.char == ".":
-                self.pos[2] -= self._pos_step * self.pos_sensitivity
+                self.pos[2] -= self._pos_step * self.pos_sensitivity  # dec z
             elif key.char == ";":
-                self.pos[2] += self._pos_step * self.pos_sensitivity
+                self.pos[2] += self._pos_step * self.pos_sensitivity  # inc z
 
             # controls for moving orientation
             elif key.char == "e":
